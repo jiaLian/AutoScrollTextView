@@ -1,20 +1,40 @@
 apply plugin: 'com.android.library'
-
+apply plugin: 'com.novoda.bintray-release'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+def verCode = 1
+def verName = "0.1.0"
 android {
-  compileSdkVersion 25
-  buildToolsVersion "25.0.3"
+    compileSdkVersion 29
 
-  defaultConfig {
-    minSdkVersion 14
-    targetSdkVersion 25
-    versionCode 1
-    versionName "1.0"
-  }
-  buildTypes {
-    release {
-      minifyEnabled false
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 29
+        versionCode verCode
+        versionName verName
     }
-  }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    dependencies {
+        implementation "androidx.core:core-ktx:1.3.1"
+        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    }
+    publish {
+        userOrg = 'jialian'           //bintray注册的用户名
+        repoName = 'goodJia'           //bintray仓库名
+        groupId = 'com.goodjia'
+        artifactId = 'marqueeTextView'
+        publishVersion = verName
+        desc = 'This is a marquee textView library'
+        website = 'https://github.com/jiaLian/MarqueeTextView'
+    }
 }
 
