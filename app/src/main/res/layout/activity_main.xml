@@ -10,7 +10,7 @@
         android:id="@+id/btnStart"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="15dp"
+        android:layout_margin="3dp"
         android:text="Start Scroll"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -21,13 +21,32 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_below="@id/btnStart"
-        android:layout_margin="15dp"
+        android:layout_margin="3dp"
         android:gravity="center"
         android:text="Stop Scroll"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btnStart" />
 
+    <Button
+        android:id="@+id/btnShow"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="3dp"
+        android:text="show"
+        app:layout_constraintEnd_toStartOf="@id/btnDismiss"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnStop" />
+
+    <Button
+        android:id="@+id/btnDismiss"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="dismiss"
+        android:layout_marginEnd="3dp"
+app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btnShow"
+        app:layout_constraintTop_toTopOf="@id/btnShow" />
 
     <com.goodjia.autoscrolltextview.MarqueeTextView
         android:id="@+id/mtv"
@@ -38,5 +57,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnStop" />
+        app:layout_constraintTop_toBottomOf="@id/btnShow" />
 </androidx.constraintlayout.widget.ConstraintLayout>

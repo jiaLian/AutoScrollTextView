@@ -5,7 +5,10 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.text.TextUtils
 import android.util.AttributeSet
+import android.util.TypedValue
+import android.view.View
 import android.widget.TextView
+import androidx.annotation.ColorInt
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -153,5 +156,22 @@ class MarqueeTextView : TextView {
             future?.cancel(true)
         }
         task?.cancel()
+    }
+
+    @JvmOverloads
+    fun show(content: String? = null, speedScale: Float? = null, textSize: Int? = null, @ColorInt textColor: Int? = null, @ColorInt bgColor: Int? = null, letterSpacing: Float? = null) {
+        speedScale?.let { this.speedScale = it }
+        bgColor?.let { setBackgroundColor(it) }
+        textColor?.let { setTextColor(it) }
+        textSize?.let { setTextSize(TypedValue.COMPLEX_UNIT_SP, it.toFloat()) }
+        letterSpacing?.let { this.letterSpacing = it }
+        setText(content ?: text.toString())
+        visibility = View.VISIBLE
+        startScroll()
+    }
+
+    fun dismiss() {
+        stopScroll()
+        visibility = View.GONE
     }
 }
