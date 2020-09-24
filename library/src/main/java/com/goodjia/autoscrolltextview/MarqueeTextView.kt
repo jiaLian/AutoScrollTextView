@@ -28,7 +28,7 @@ class MarqueeTextView : TextView {
     }
 
     private var currentScrollPos = 0
-    private var playTime: Long? = null
+    private var playTime: Int? = null
     private var repeatTimes: Int? = null
     private val dismissRunnable = Runnable {
         dismiss()
@@ -122,7 +122,7 @@ class MarqueeTextView : TextView {
         future = pool.scheduleAtFixedRate(task, 0, speed.toLong(), TimeUnit.MILLISECONDS)
         if (!keepRepeatValue) {
             playTime?.let {
-                postDelayed(dismissRunnable, it * 1_000)
+                postDelayed(dismissRunnable, it * 1_000L)
             }
         }
     }
@@ -185,7 +185,7 @@ class MarqueeTextView : TextView {
     }
 
     @JvmOverloads
-    fun show(content: String? = null, speedScale: Float? = null, textSize: Int? = null, @ColorInt textColor: Int? = null, @ColorInt bgColor: Int? = null, letterSpacing: Float? = null, playTime: Long? = null, repeatTimes: Int? = null) {
+    fun show(content: String? = null, speedScale: Float? = null, textSize: Int? = null, @ColorInt textColor: Int? = null, @ColorInt bgColor: Int? = null, letterSpacing: Float? = null, playTime: Int? = null, repeatTimes: Int? = null) {
         playTime?.let {
             this.playTime = it
             this.repeatTimes = null
