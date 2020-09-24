@@ -8,5 +8,6 @@ package com.goodjia.autoscrolltextview
  */
 interface IMarqueeListener {
     fun onStart()
-    fun onFinish()
+    fun onLoopCompletion(count: Int)
+    fun onFinished()
 }
