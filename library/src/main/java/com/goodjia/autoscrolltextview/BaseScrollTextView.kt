@@ -76,12 +76,15 @@ abstract class BaseScrollTextView @JvmOverloads constructor(context: Context?, a
         }
         textView.setMarqueeListener(object : IMarqueeListener {
             override fun onStart() {}
-            override fun onFinish() {
+
+            override fun onLoopCompletion(count: Int) {
                 if (isStop) {
                     return
                 }
                 myHandler?.sendMessageDelayed(Message.obtain(handler, FLAG_AUTO_SCROLL), 1000)
             }
+
+            override fun onFinished() {}
         })
         layout.addView(textView)
         return layout

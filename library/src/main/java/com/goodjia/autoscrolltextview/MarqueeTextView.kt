@@ -22,12 +22,19 @@ import java.util.concurrent.TimeUnit
  */
 class MarqueeTextView : TextView {
     companion object {
+        val TAG = MarqueeTextView::class.simpleName
         const val DEFAULT_SPEED = 6
         const val DEFAULT_INFINITE_DELAY = 800L
     }
 
     private var currentScrollPos = 0
-
+    private var playTime: Long? = null
+    private var repeatTimes: Int? = null
+    private val dismissRunnable = Runnable {
+        dismiss()
+        marqueeListener?.onFinished()
+    }
+    private var repeatCount = 0
     var baseSpeed = DEFAULT_SPEED
     var infiniteDelayMillis = DEFAULT_INFINITE_DELAY
 
@@ -58,6 +65,9 @@ class MarqueeTextView : TextView {
     private var marqueeListener: IMarqueeListener? = null
     private var future: Future<*>? = null
     private var pool = Executors.newScheduledThreadPool(1)
+    private val inFiniteRunnable = Runnable {
+        startScroll(true)
+    }
     private val task: TimerTask? = object : TimerTask() {
         override fun run() {
             if (textWidth == -1) {
@@ -71,9 +81,16 @@ class MarqueeTextView : TextView {
                 //currentScrollPos = -getWidth();
                 this.cancel()
                 flag = true
-                marqueeListener?.onFinish()
+                repeatCount++
+                marqueeListener?.onLoopCompletion(repeatCount)
                 if (isInFinite) {
-                    postDelayed({ startScroll() }, infiniteDelayMillis)
+                    postDelayed(inFiniteRunnable, infiniteDelayMillis)
+                }
+                repeatTimes?.let {
+                    if (repeatCount == it) {
+                        dismiss()
+                        marqueeListener?.onFinished()
+                    }
                 }
             }
             if (!flag) {
@@ -99,10 +116,15 @@ class MarqueeTextView : TextView {
         setSingleLine()
     }
 
-    fun startScroll() {
-        reset()
+    fun startScroll(keepRepeatValue: Boolean = false) {
+        reset(keepRepeatValue)
         stopFuture()
         future = pool.scheduleAtFixedRate(task, 0, speed.toLong(), TimeUnit.MILLISECONDS)
+        if (!keepRepeatValue) {
+            playTime?.let {
+                postDelayed(dismissRunnable, it * 1_000)
+            }
+        }
     }
 
     fun postStartScroll(delay: Int) {
@@ -137,10 +159,14 @@ class MarqueeTextView : TextView {
         textWidth = paint.measureText(str).toInt()
     }
 
-    fun reset() {
+    fun reset(keepRepeatValue: Boolean = false) {
         flag = false
         isStop = false
         currentScrollPos = 0
+        if (!keepRepeatValue) {
+            repeatCount = 0
+            removeCallbacks(dismissRunnable)
+        }
         scrollTo(currentScrollPos, 0)
     }
 
@@ -159,7 +185,14 @@ class MarqueeTextView : TextView {
     }
 
     @JvmOverloads
-    fun show(content: String? = null, speedScale: Float? = null, textSize: Int? = null, @ColorInt textColor: Int? = null, @ColorInt bgColor: Int? = null, letterSpacing: Float? = null) {
+    fun show(content: String? = null, speedScale: Float? = null, textSize: Int? = null, @ColorInt textColor: Int? = null, @ColorInt bgColor: Int? = null, letterSpacing: Float? = null, playTime: Long? = null, repeatTimes: Int? = null) {
+        playTime?.let {
+            this.playTime = it
+            this.repeatTimes = null
+        } ?: repeatTimes?.let {
+            this.repeatTimes = it
+            this.playTime = null
+        } ?: setNull()
         speedScale?.let { this.speedScale = it }
         bgColor?.let { setBackgroundColor(it) }
         textColor?.let { setTextColor(it) }
@@ -172,6 +205,13 @@ class MarqueeTextView : TextView {
 
     fun dismiss() {
         stopScroll()
-        visibility = View.GONE
+        removeCallbacks(inFiniteRunnable)
+        post { visibility = View.GONE }
     }
+
+    private fun setNull() {
+        repeatTimes = null
+        playTime = null
+    }
+
 }
