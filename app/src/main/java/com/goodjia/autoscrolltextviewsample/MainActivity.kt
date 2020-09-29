@@ -47,11 +47,11 @@ class MainActivity : AppCompatActivity() {
         btnStart.setOnClickListener { mtv.startScroll() }
         btnStop.setOnClickListener { mtv.stopScroll() }
         btnShow.setOnClickListener {
-            val playTime = if (Random.nextBoolean()) null else Random.nextLong(20)
+            val playTime = if (Random.nextBoolean()) null else Random.nextInt(20)
             val repeatTimes = if (Random.nextBoolean()) null else Random.nextInt(10)
             Log.d(TAG, "show play time $playTime, repeat time $repeatTimes")
             mtv.show(content = contentList[Random.nextInt(contentList.size)].replace("\n", ""),
-                    speedScale = Random.nextFloat() * 3 + 0.3f,
+                    speedScale = Random.nextFloat() * 4.5f + 0.7f,
                     textSize = Random.nextInt(50) + 15,
                     textColor = randomColor,
                     bgColor = randomColor,

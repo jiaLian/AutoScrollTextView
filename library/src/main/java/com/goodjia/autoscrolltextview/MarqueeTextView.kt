@@ -23,7 +23,10 @@ import java.util.concurrent.TimeUnit
 class MarqueeTextView : TextView {
     companion object {
         val TAG = MarqueeTextView::class.simpleName
-        const val DEFAULT_SPEED = 6
+        const val MIN_SHIFT_DELAY = 10L
+        const val DEFAULT_SHIFT_DELAY = 50L
+        const val DEFAULT_SHIFT = 2
+        const val MAX_SHIFT = 3
         const val DEFAULT_INFINITE_DELAY = 800L
     }
 
@@ -35,15 +38,19 @@ class MarqueeTextView : TextView {
         marqueeListener?.onFinished()
     }
     private var repeatCount = 0
-    var baseSpeed = DEFAULT_SPEED
-    var infiniteDelayMillis = DEFAULT_INFINITE_DELAY
 
-    //速度
-    private var speed = baseSpeed
+    var baseShiftDelay = DEFAULT_SHIFT_DELAY
+    var baseShift = DEFAULT_SHIFT
+    private var shift = DEFAULT_SHIFT
+        get() = if (field > MAX_SHIFT) MAX_SHIFT else if (field == 0) 1 else field
+    private var shiftDelay = DEFAULT_SHIFT_DELAY
+        get() = if (field < MIN_SHIFT_DELAY) MIN_SHIFT_DELAY else field
+    var infiniteDelayMillis = DEFAULT_INFINITE_DELAY
 
     var speedScale: Float = 1f
         set(value) {
-            speed = (baseSpeed / value).toInt()
+            shiftDelay = ((baseShiftDelay / value).toLong())
+            shift = (baseShift * value).toInt()
             field = value
         }
 
@@ -70,15 +77,10 @@ class MarqueeTextView : TextView {
     }
     private val task: TimerTask? = object : TimerTask() {
         override fun run() {
-            if (textWidth == -1) {
-                postInvalidate()
-                return
-            }
-            if (isStop) {
+            if (textWidth == -1 || isStop) {
                 return
             }
             if (!flag && currentScrollPos >= textWidth - width) {
-                //currentScrollPos = -getWidth();
                 this.cancel()
                 flag = true
                 repeatCount++
@@ -94,8 +96,8 @@ class MarqueeTextView : TextView {
                 }
             }
             if (!flag) {
-                currentScrollPos += 1
-                scrollTo(currentScrollPos, 0)
+                currentScrollPos += shift
+                scrollX = currentScrollPos
             }
         }
     }
@@ -119,7 +121,7 @@ class MarqueeTextView : TextView {
     fun startScroll(keepRepeatValue: Boolean = false) {
         reset(keepRepeatValue)
         stopFuture()
-        future = pool.scheduleAtFixedRate(task, 0, speed.toLong(), TimeUnit.MILLISECONDS)
+        future = pool.scheduleAtFixedRate(task, 0, shiftDelay, TimeUnit.MILLISECONDS)
         if (!keepRepeatValue) {
             playTime?.let {
                 postDelayed(dismissRunnable, it * 1_000L)
@@ -130,7 +132,7 @@ class MarqueeTextView : TextView {
     fun postStartScroll(delay: Int) {
         reset()
         stopFuture()
-        future = pool.scheduleAtFixedRate(task, delay.toLong(), speed.toLong(), TimeUnit.MILLISECONDS)
+        future = pool.scheduleAtFixedRate(task, delay.toLong(), shiftDelay, TimeUnit.MILLISECONDS)
     }
 
     fun stopScroll() {
@@ -145,6 +147,7 @@ class MarqueeTextView : TextView {
     override fun scrollTo(x: Int, y: Int) {
         super.scrollTo(if (x == 0) currentScrollPos else x, y)
     }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (!isMeasured) {
@@ -170,13 +173,12 @@ class MarqueeTextView : TextView {
             repeatCount = 0
             removeCallbacks(dismissRunnable)
         }
-        scrollTo(currentScrollPos, 0)
+        scrollX = currentScrollPos
     }
 
     fun setText(str: String?) {
         super.setText(str)
         isMeasured = false
-        invalidate()
     }
 
     @Synchronized
