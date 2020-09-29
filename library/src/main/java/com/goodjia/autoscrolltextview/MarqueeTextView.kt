@@ -142,6 +142,9 @@ class MarqueeTextView : TextView {
         this.marqueeListener = marqueeListener
     }
 
+    override fun scrollTo(x: Int, y: Int) {
+        super.scrollTo(if (x == 0) currentScrollPos else x, y)
+    }
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (!isMeasured) {
