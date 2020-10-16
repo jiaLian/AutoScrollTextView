@@ -27,7 +27,6 @@ class MarqueeTextView : TextView {
         const val DEFAULT_SHIFT_DELAY = 50L
         const val DEFAULT_SHIFT = 2
         const val MAX_SHIFT = 3
-        const val DEFAULT_INFINITE_DELAY = 800L
     }
 
     private var currentScrollPos = 0
@@ -45,7 +44,6 @@ class MarqueeTextView : TextView {
         get() = if (field > MAX_SHIFT) MAX_SHIFT else if (field == 0) 1 else field
     private var shiftDelay = DEFAULT_SHIFT_DELAY
         get() = if (field < MIN_SHIFT_DELAY) MIN_SHIFT_DELAY else field
-    var infiniteDelayMillis = DEFAULT_INFINITE_DELAY
 
     var speedScale: Float = 1f
         set(value) {
@@ -65,6 +63,8 @@ class MarqueeTextView : TextView {
     @Volatile
     private var flag = false
 
+    private var isRedrawScroll = false
+
     //是否停止移动
     @Volatile
     private var isStop = false
@@ -72,21 +72,18 @@ class MarqueeTextView : TextView {
     private var marqueeListener: IMarqueeListener? = null
     private var future: Future<*>? = null
     private var pool = Executors.newScheduledThreadPool(1)
-    private val inFiniteRunnable = Runnable {
-        startScroll(true)
-    }
     private val task: TimerTask? = object : TimerTask() {
         override fun run() {
             if (textWidth == -1 || isStop) {
                 return
             }
-            if (!flag && currentScrollPos >= textWidth - width) {
+            if (!flag && currentScrollPos >= textWidth) {
                 this.cancel()
                 flag = true
                 repeatCount++
                 marqueeListener?.onLoopCompletion(repeatCount)
                 if (isInFinite) {
-                    postDelayed(inFiniteRunnable, infiniteDelayMillis)
+                    startScroll(true)
                 }
                 repeatTimes?.let {
                     if (repeatCount == it) {
@@ -95,7 +92,7 @@ class MarqueeTextView : TextView {
                     }
                 }
             }
-            if (!flag) {
+            if (!flag && !isRedrawScroll) {
                 currentScrollPos += shift
                 scrollX = currentScrollPos
             }
@@ -145,7 +142,9 @@ class MarqueeTextView : TextView {
     }
 
     override fun scrollTo(x: Int, y: Int) {
+        if (x == 0 && currentScrollPos != 0) isRedrawScroll = true
         super.scrollTo(if (x == 0) currentScrollPos else x, y)
+        if (isRedrawScroll) isRedrawScroll = false
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -168,7 +167,7 @@ class MarqueeTextView : TextView {
     fun reset(keepRepeatValue: Boolean = false) {
         flag = false
         isStop = false
-        currentScrollPos = 0
+        currentScrollPos = -width
         if (!keepRepeatValue) {
             repeatCount = 0
             removeCallbacks(dismissRunnable)
@@ -210,7 +209,6 @@ class MarqueeTextView : TextView {
 
     fun dismiss() {
         stopScroll()
-        removeCallbacks(inFiniteRunnable)
         post { visibility = View.GONE }
     }
 
